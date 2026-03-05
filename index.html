@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Pill Problem — Recalibrate</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --border: #2a2a3a;
+    --coral: #ff6b6b;
+    --rose: #e8536a;
+    --gold: #f4c67a;
+    --mint: #6be8c8;
+    --text: #e8e4f0;
+    --muted: #7a7a9a;
+    --danger: #ff4444;
+    --success: #44dd88;
+    --warning: #ffaa44;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Instrument Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(255,107,107,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,107,107,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .screen { display: none; position: relative; z-index: 1; }
+  .screen.active { display: block; }
+
+  /* ── INTRO SCREEN ── */
+  #intro {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+  }
+
+  .tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--coral);
+    text-transform: uppercase;
+    border: 1px solid rgba(255,107,107,0.3);
+    padding: 6px 16px;
+    border-radius: 2px;
+    margin-bottom: 32px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  h1.hero {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(42px, 8vw, 90px);
+    line-height: 1.0;
+    margin-bottom: 8px;
+    animation: fadeUp 0.6s 0.15s ease both;
+  }
+
+  h1.hero em {
+    font-style: italic;
+    color: var(--coral);
+  }
+
+  .subtitle {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 560px;
+    line-height: 1.7;
+    margin: 24px auto 48px;
+    animation: fadeUp 0.6s 0.3s ease both;
+  }
+
+  .stat-row {
+    display: flex;
+    gap: 32px;
+    margin-bottom: 56px;
+    flex-wrap: wrap;
+    justify-content: center;
+    animation: fadeUp 0.6s 0.45s ease both;
+  }
+
+  .stat-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 20px 28px;
+    text-align: center;
+    min-width: 160px;
+  }
+
+  .stat-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 36px;
+    color: var(--coral);
+    display: block;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 1px;
+  }
+
+  .btn-primary {
+    background: var(--coral);
+    color: #fff;
+    border: none;
+    padding: 16px 48px;
+    font-size: 15px;
+    font-family: 'Instrument Sans', sans-serif;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+    animation: fadeUp 0.6s 0.6s ease both;
+    text-transform: uppercase;
+  }
+
+  .btn-primary:hover {
+    background: var(--rose);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255,107,107,0.3);
+  }
+
+  /* ── CASE STUDY SCREEN ── */
+  #case-intro {
+    min-height: 100vh;
+    display: flex;
+    align-items: stretch;
+  }
+
+  .case-sidebar {
+    width: 320px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 48px 32px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .patient-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--coral), var(--rose));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    margin-bottom: 20px;
+  }
+
+  .patient-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    margin-bottom: 4px;
+  }
+
+  .patient-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 32px;
+    letter-spacing: 1px;
+  }
+
+  .vitals-list { list-style: none; }
+
+  .vital-item {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+  }
+
+  .vital-label { color: var(--muted); font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1px; }
+
+  .vital-val { font-weight: 600; }
+
+  .vital-val.normal { color: var(--success); }
+  .vital-val.warning { color: var(--warning); }
+  .vital-val.danger { color: var(--danger); }
+
+  .case-main {
+    flex: 1;
+    padding: 48px;
+    overflow-y: auto;
+  }
+
+  .case-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+
+  .case-step {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--coral);
+    letter-spacing: 2px;
+  }
+
+  h2.case-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    margin-bottom: 12px;
+  }
+
+  .case-desc {
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 40px;
+    max-width: 640px;
+    font-size: 15px;
+  }
+
+  /* Alert banner */
+  .alert-banner {
+    background: rgba(255,68,68,0.1);
+    border: 1px solid rgba(255,68,68,0.4);
+    border-left: 4px solid var(--danger);
+    padding: 16px 20px;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .alert-icon { font-size: 20px; flex-shrink: 0; }
+
+  .alert-text { font-size: 14px; line-height: 1.6; }
+
+  .alert-text strong { color: var(--danger); }
+
+  /* ── CALIBRATION SLIDERS ── */
+  .calibration-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 40px;
+  }
+
+  @media (max-width: 900px) {
+    .calibration-grid { grid-template-columns: 1fr; }
+    #case-intro { flex-direction: column; }
+    .case-sidebar { width: 100%; }
+  }
+
+  .cal-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 24px;
+    transition: border-color 0.3s;
+  }
+
+  .cal-card.calibrated { border-color: rgba(107,232,200,0.4); }
+
+  .cal-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+
+  .cal-name {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .cal-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+    max-width: 240px;
+  }
+
+  .cal-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 2px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .cal-badge.male { background: rgba(100,100,200,0.2); color: #8888ff; border: 1px solid rgba(100,100,200,0.3); }
+  .cal-badge.female { background: rgba(107,232,200,0.15); color: var(--mint); border: 1px solid rgba(107,232,200,0.3); }
+
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .slider-labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--coral);
+    cursor: pointer;
+    transition: transform 0.15s;
+    box-shadow: 0 0 8px rgba(255,107,107,0.5);
+  }
+
+  input[type=range]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+  }
+
+  .slider-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--coral);
+    min-width: 44px;
+    text-align: right;
+  }
+
+  /* Toggle switch */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 14px;
+  }
+
+  .toggle {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+
+  .toggle input { opacity: 0; width: 0; height: 0; }
+
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 16px; height: 16px;
+    left: 4px; top: 4px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.3s;
+  }
+
+  .toggle input:checked + .toggle-slider { background: var(--mint); }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+  .toggle-label { font-size: 12px; color: var(--muted); }
+
+  /* ── DIAGNOSIS RESULT ── */
+  #result-screen {
+    min-height: 100vh;
+    padding: 60px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .result-comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    width: 100%;
+    max-width: 900px;
+    margin: 40px 0;
+  }
+
+  @media (max-width: 700px) {
+    .result-comparison { grid-template-columns: 1fr; }
+  }
+
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 32px;
+  }
+
+  .result-card.wrong { border-top: 3px solid var(--danger); }
+  .result-card.right { border-top: 3px solid var(--success); }
+
+  .result-card-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+
+  .result-card.wrong .result-card-label { color: var(--danger); }
+  .result-card.right .result-card-label { color: var(--success); }
+
+  .result-diagnosis {
+    font-family: 'DM Serif Display', serif;
+    font-size: 24px;
+    margin-bottom: 12px;
+  }
+
+  .result-card.wrong .result-diagnosis { color: var(--danger); }
+  .result-card.right .result-diagnosis { color: var(--success); }
+
+  .result-body { font-size: 14px; color: var(--muted); line-height: 1.7; }
+
+  .score-ring {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid var(--success);
+    box-shadow: 0 0 40px rgba(68,221,136,0.2);
+    margin: 0 auto 12px;
+  }
+
+  .score-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 48px;
+    color: var(--success);
+    line-height: 1;
+  }
+
+  .score-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+  }
+
+  .fact-ticker {
+    background: rgba(255,107,107,0.08);
+    border: 1px solid rgba(255,107,107,0.2);
+    padding: 20px 28px;
+    max-width: 700px;
+    width: 100%;
+    margin: 24px auto;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+
+  .fact-ticker strong { color: var(--coral); }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--coral);
+    border: 1px solid var(--coral);
+    padding: 14px 40px;
+    font-size: 14px;
+    font-family: 'Instrument Sans', sans-serif;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    margin: 8px;
+  }
+
+  .btn-secondary:hover {
+    background: rgba(255,107,107,0.1);
+  }
+
+  /* Progress bar */
+  .progress-bar-wrap {
+    width: 100%;
+    max-width: 700px;
+    height: 3px;
+    background: var(--border);
+    margin: 0 auto 48px;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--coral), var(--rose));
+    transition: width 0.5s ease;
+  }
+
+  /* Cases nav dots */
+  .case-dots {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 32px;
+  }
+
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: background 0.3s;
+  }
+
+  .dot.done { background: var(--success); }
+  .dot.active { background: var(--coral); }
+
+  /* Pulse animation for live vitals */
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .live-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--success);
+    animation: pulse 1.5s infinite;
+    display: inline-block;
+    margin-right: 6px;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .animate-in { animation: fadeUp 0.5s ease both; }
+
+  /* ECG line decorative */
+  .ecg-line {
+    width: 100%;
+    height: 40px;
+    opacity: 0.15;
+    margin: 24px 0;
+  }
+
+  /* Final screen */
+  #final-screen {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 40px;
+    text-align: center;
+  }
+
+  .final-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(36px, 6vw, 64px);
+    margin: 24px 0 16px;
+    line-height: 1.1;
+  }
+
+  .facts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    max-width: 900px;
+    width: 100%;
+    margin: 40px auto;
+  }
+
+  .fact-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 24px;
+    text-align: left;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .fact-card:nth-child(2) { animation-delay: 0.1s; }
+  .fact-card:nth-child(3) { animation-delay: 0.2s; }
+  .fact-card:nth-child(4) { animation-delay: 0.3s; }
+
+  .fact-card-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 36px;
+    color: var(--coral);
+    margin-bottom: 8px;
+  }
+
+  .fact-card-text {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .heart { display: inline-block; animation: pulse 1s infinite; color: var(--coral); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ SCREEN 1: INTRO ══════════════ -->
+<div id="intro" class="screen active">
+  <div class="tag">Women's Day · Interactive Simulation · 2025</div>
+  <h1 class="hero">The <em>Pill</em><br>Problem</h1>
+  <p class="subtitle">
+    For decades, medical devices and drug trials used the male body as the default. 
+    Today, you are the engineer. Recalibrate IoT health monitors for female biology — 
+    and watch misdiagnoses disappear.
+  </p>
+
+  <div class="stat-row">
+    <div class="stat-box">
+      <span class="stat-num">80%</span>
+      <span class="stat-label">of drugs pulled from<br>market for female side effects</span>
+    </div>
+    <div class="stat-box">
+      <span class="stat-num">7 yrs</span>
+      <span class="stat-label">longer women wait for<br>correct heart diagnosis</span>
+    </div>
+    <div class="stat-box">
+      <span class="stat-num">50%</span>
+      <span class="stat-label">of early trials excluded<br>female subjects entirely</span>
+    </div>
+  </div>
+
+  <button class="btn-primary" onclick="startSim()">Begin Recalibration →</button>
+</div>
+
+<!-- ══════════════ SCREEN 2: CASE STUDY ══════════════ -->
+<div id="case-intro" class="screen">
+  <div class="case-sidebar">
+    <div class="patient-avatar" id="patient-avatar">👩</div>
+    <div class="patient-name" id="patient-name">Amara, 44</div>
+    <div class="patient-meta" id="patient-meta">NAIROBI · ADMITTED 08:42</div>
+
+    <svg class="ecg-line" viewBox="0 0 400 40" xmlns="http://www.w3.org/2000/svg">
+      <polyline points="0,20 40,20 50,20 60,5 70,35 80,20 120,20 130,20 140,5 150,35 160,20 200,20 210,20 220,5 230,35 240,20 280,20 290,20 300,5 310,35 320,20 360,20 370,20 380,5 390,35 400,20" 
+        fill="none" stroke="#ff6b6b" stroke-width="2"/>
+    </svg>
+
+    <ul class="vitals-list" id="vitals-list">
+      <li class="vital-item">
+        <span class="vital-label">HEART RATE</span>
+        <span class="vital-val warning" id="v-hr">92 bpm</span>
+      </li>
+      <li class="vital-item">
+        <span class="vital-label">BLOOD PRESSURE</span>
+        <span class="vital-val normal" id="v-bp">118/76</span>
+      </li>
+      <li class="vital-item">
+        <span class="vital-label">TROPONIN</span>
+        <span class="vital-val warning" id="v-trop">0.04 ng/mL</span>
+      </li>
+      <li class="vital-item">
+        <span class="vital-label">CYCLE PHASE</span>
+        <span class="vital-val" id="v-cycle" style="color: var(--muted)">NOT TRACKED</span>
+      </li>
+      <li class="vital-item">
+        <span class="vital-label">BONE DENSITY</span>
+        <span class="vital-val danger" id="v-bone">-2.6 T</span>
+      </li>
+      <li class="vital-item">
+        <span class="vital-label">STATUS</span>
+        <span class="vital-val"><span class="live-dot"></span>LIVE</span>
+      </li>
+    </ul>
+
+    <div style="margin-top: auto; padding-top: 32px;">
+      <div style="font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 1px; margin-bottom: 8px;">CASE PROGRESS</div>
+      <div class="case-dots" id="case-dots">
+        <div class="dot active"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="case-main">
+    <div class="case-header">
+      <span class="case-step" id="case-step-label">CASE 01 OF 03</span>
+    </div>
+
+    <h2 class="case-title" id="case-title">Heart Attack — Or Is It?</h2>
+
+    <div class="alert-banner" id="case-alert">
+      <div class="alert-icon">⚠️</div>
+      <div class="alert-text" id="alert-text">
+        <strong>CURRENT DIAGNOSIS (Male-Calibrated Monitor):</strong> Anxiety disorder. Patient is being sent home with a prescription for antidepressants. The IoT monitor flagged her troponin as normal — using male reference ranges.
+      </div>
+    </div>
+
+    <p class="case-desc" id="case-desc">
+      Amara arrived with fatigue, jaw pain, and nausea — classic heart attack symptoms in women. But they present differently than in men (no chest-crushing pain). The current IoT monitor was calibrated on male trial data and missed it entirely. Recalibrate the device below.
+    </p>
+
+    <!-- CALIBRATION CONTROLS -->
+    <div class="calibration-grid" id="calibration-controls">
+
+      <div class="cal-card" id="card-troponin">
+        <div class="cal-card-header">
+          <div>
+            <div class="cal-name">Troponin Threshold</div>
+            <div class="cal-desc">Women have naturally lower troponin baselines. The male threshold misses female cardiac events.</div>
+          </div>
+          <div class="cal-badge male" id="badge-troponin">♂ MALE DEFAULT</div>
+        </div>
+        <div class="slider-row">
+          <input type="range" min="1" max="10" value="5" id="sl-troponin" oninput="updateSlider('troponin', this.value)">
+          <span class="slider-val" id="val-troponin">0.05 ng/mL</span>
+        </div>
+        <div class="slider-labels"><span>High (Male)</span><span>Low (Female)</span></div>
+      </div>
+
+      <div class="cal-card" id="card-symptoms">
+        <div class="cal-card-header">
+          <div>
+            <div class="cal-name">Atypical Symptom Weighting</div>
+            <div class="cal-desc">Nausea, jaw pain, and fatigue are primary indicators in women. Currently weighted as "secondary."</div>
+          </div>
+          <div class="cal-badge male" id="badge-symptoms">♂ MALE DEFAULT</div>
+        </div>
+        <div class="slider-row">
+          <input type="range" min="1" max="10" value="2" id="sl-symptoms" oninput="updateSlider('symptoms', this.value)">
+          <span class="slider-val" id="val-symptoms">20%</span>
+        </div>
+        <div class="slider-labels"><span>Low weight</span><span>High weight</span></div>
+      </div>
+
+      <div class="cal-card" id="card-cycle">
+        <div class="cal-card-header">
+          <div>
+            <div class="cal-name">Hormonal Cycle Tracking</div>
+            <div class="cal-desc">Estrogen affects cholesterol and heart risk. Tracking cycle phase changes the risk calculation entirely.</div>
+          </div>
+          <div class="cal-badge male" id="badge-cycle">♂ NOT TRACKED</div>
+        </div>
+        <div class="toggle-row">
+          <label class="toggle">
+            <input type="checkbox" id="tog-cycle" onchange="updateToggle('cycle', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label" id="label-cycle">Enable menstrual cycle phase input</span>
+        </div>
+        <div id="cycle-phase-row" style="display:none; margin-top: 16px;">
+          <div class="slider-row">
+            <input type="range" min="1" max="4" value="2" id="sl-cycle" oninput="updateCyclePhase(this.value)">
+            <span class="slider-val" id="val-cycle">Follicular</span>
+          </div>
+          <div class="slider-labels"><span>Menstrual</span><span>Luteal</span></div>
+        </div>
+      </div>
+
+      <div class="cal-card" id="card-bone">
+        <div class="cal-card-header">
+          <div>
+            <div class="cal-name">Bone Density Reference</div>
+            <div class="cal-desc">Osteoporosis T-scores for women differ from men. The current alert threshold triggers too late for female patients.</div>
+          </div>
+          <div class="cal-badge male" id="badge-bone">♂ MALE DEFAULT</div>
+        </div>
+        <div class="slider-row">
+          <input type="range" min="1" max="10" value="3" id="sl-bone" oninput="updateSlider('bone', this.value)">
+          <span class="slider-val" id="val-bone">-2.5 T</span>
+        </div>
+        <div class="slider-labels"><span>Male threshold</span><span>Female threshold</span></div>
+      </div>
+
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+      <button class="btn-primary" id="run-btn" onclick="runDiagnosis()" style="opacity: 0.5; pointer-events: none;">
+        Run Diagnosis →
+      </button>
+      <div style="font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted);" id="calibration-hint">
+        Adjust at least 2 parameters to enable
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════ SCREEN 3: RESULT ══════════════ -->
+<div id="result-screen" class="screen">
+  <div style="text-align: center; max-width: 800px; width: 100%;">
+    <div class="tag" id="result-tag">DIAGNOSIS UPDATED</div>
+    <h2 class="case-title animate-in" id="result-title" style="font-family: 'DM Serif Display', serif; font-size: clamp(28px,5vw,52px); margin: 16px 0;">Recalibration Complete</h2>
+
+    <div style="margin: 32px auto; max-width: 140px;">
+      <div class="score-ring" id="score-ring">
+        <span class="score-num" id="score-num">0</span>
+        <span class="score-label">ACCURACY</span>
+      </div>
+    </div>
+
+    <div class="result-comparison" id="result-cards">
+      <div class="result-card wrong">
+        <div class="result-card-label">✗ BEFORE RECALIBRATION</div>
+        <div class="result-diagnosis" id="wrong-diag">Anxiety Disorder</div>
+        <div class="result-body" id="wrong-body">Male-calibrated monitor missed cardiac markers. Patient sent home with antidepressants. Risk of fatal outcome within 48 hours: high.</div>
+      </div>
+      <div class="result-card right">
+        <div class="result-card-label">✓ AFTER YOUR RECALIBRATION</div>
+        <div class="result-diagnosis" id="right-diag">Acute Cardiac Event</div>
+        <div class="result-body" id="right-body">Female-calibrated thresholds correctly flagged troponin elevation and atypical symptoms. Patient admitted to cardiac care immediately.</div>
+      </div>
+    </div>
+
+    <div class="fact-ticker" id="fact-ticker">
+      <strong>Real-world fact:</strong> Women are 50% more likely than men to receive an incorrect initial diagnosis following a heart attack. This simulation is based on documented cases of IoT health monitors using exclusively male clinical trial data.
+    </div>
+
+    <div style="margin-top: 32px;">
+      <button class="btn-primary" onclick="nextCase()" id="next-btn">Next Patient →</button>
+      <button class="btn-secondary" onclick="goHome()">Start Over</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ SCREEN 4: FINAL ══════════════ -->
+<div id="final-screen" class="screen">
+  <div class="tag">Simulation Complete · Women's Day 2025</div>
+  <div style="font-size: 48px; margin: 16px 0;">
+    <span class="heart">♥</span>
+  </div>
+  <h1 class="final-title">You just saved<br><em style="color: var(--coral); font-family: 'DM Serif Display', serif;">3 lives.</em></h1>
+  <p style="color: var(--muted); max-width: 560px; line-height: 1.7; margin: 16px auto 40px;">
+    In reality, millions of women are still being diagnosed by devices calibrated on male bodies. 
+    The first step to change is knowing the problem exists.
+  </p>
+
+  <div class="facts-grid">
+    <div class="fact-card">
+      <div class="fact-card-num">1986</div>
+      <div class="fact-card-text">The year the NIH first required women to be included in clinical trials — decades after most devices were already standardized on male data.</div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-card-num">76%</div>
+      <div class="fact-card-text">of autoimmune disease patients are women, yet research funding lags far behind cancer and heart disease research calibrated on men.</div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-card-num">700%</div>
+      <div class="fact-card-text">Women are 7x more likely to be misdiagnosed during a heart attack and sent home without cardiac treatment.</div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-card-num">NOW</div>
+      <div class="fact-card-text">Engineers, designers, and data scientists can change this. Female-inclusive IoT calibration is not optional — it's life-saving.</div>
+    </div>
+  </div>
+
+  <button class="btn-primary" onclick="resetAll()" style="margin-top: 20px;">Play Again →</button>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// DATA & STATE
+// ══════════════════════════════════════════
+
+const cases = [
+  {
+    patient: { avatar: '👩', name: 'Amara, 44', meta: 'NAIROBI · ADMITTED 08:42' },
+    title: 'Heart Attack — Or Is It?',
+    desc: 'Amara arrived with fatigue, jaw pain, and nausea — classic heart attack symptoms in women. But they present differently than in men (no chest-crushing pain). The current IoT monitor was calibrated on male trial data and missed it entirely. Recalibrate the device below.',
+    alert: '<strong>CURRENT DIAGNOSIS (Male-Calibrated Monitor):</strong> Anxiety disorder. Patient is being sent home with antidepressants. The IoT monitor flagged her troponin as normal — using male reference ranges.',
+    vitals: { hr: '92 bpm', bp: '118/76', trop: '0.04 ng/mL', cycle: 'NOT TRACKED', bone: '-2.6 T' },
+    vitalColors: { hr: 'warning', bp: 'normal', trop: 'warning', cycle: null, bone: 'danger' },
+    wrongDiag: 'Anxiety Disorder',
+    wrongBody: 'Male-calibrated monitor missed cardiac markers. Patient sent home with antidepressants. Risk of fatal outcome within 48 hours: high.',
+    rightDiag: 'Acute Cardiac Event',
+    rightBody: 'Female-calibrated thresholds correctly flagged troponin elevation and atypical symptoms. Patient admitted to cardiac care immediately.',
+    fact: 'Women are <strong>50% more likely</strong> than men to receive an incorrect initial diagnosis after a heart attack. This is directly linked to IoT monitors built on male-only trial data.'
+  },
+  {
+    patient: { avatar: '👩🏿', name: 'Fatima, 52', meta: 'MOMBASA · ADMITTED 14:15' },
+    title: 'Bone Fracture Risk — Invisible to the Device',
+    desc: 'Fatima broke her wrist in a minor fall. The IoT bone-density wearable she wore for 6 months never triggered an alert — because its osteoporosis threshold was set using male bone density data. Women lose bone mass differently, especially post-menopause.',
+    alert: '<strong>CURRENT DIAGNOSIS (Male-Calibrated Monitor):</strong> Bone density within normal range. No intervention recommended. The wearable used a T-score threshold of -2.5 calibrated on a male population.',
+    vitals: { hr: '78 bpm', bp: '130/82', trop: '0.01 ng/mL', cycle: 'POST-MENOPAUSE', bone: '-2.4 T' },
+    vitalColors: { hr: 'normal', bp: 'warning', trop: 'normal', cycle: null, bone: 'warning' },
+    wrongDiag: 'Normal Bone Density',
+    wrongBody: 'Male-calibrated T-score threshold rated Fatima as healthy. She had a preventable fracture that led to months of mobility loss.',
+    rightDiag: 'Osteopenia — Immediate Risk',
+    rightBody: 'Female-adjusted T-score threshold correctly identified significant bone loss. Preventive treatment and fall-prevention support initiated.',
+    fact: 'Osteoporosis affects <strong>4x more women than men</strong>. Yet most clinical bone-density devices were validated primarily on male cohorts in early trials.'
+  },
+  {
+    patient: { avatar: '🧕', name: 'Zawadi, 31', meta: 'KISUMU · ADMITTED 11:03' },
+    title: 'Drug Dosage — One Size Fits Men',
+    desc: 'Zawadi was prescribed a standard sedative dosage. The IoT medication dispenser calculated her dose based on body weight — using male pharmacokinetic data. Women metabolize sedatives differently due to body fat composition and hormonal variation. She was overdosed.',
+    alert: '<strong>CURRENT DIAGNOSIS (Male-Calibrated Dispenser):</strong> Standard adult dosage dispensed. Patient experiencing prolonged sedation — flagged as "unusual response" rather than overdose.',
+    vitals: { hr: '55 bpm', bp: '96/60', trop: '0.02 ng/mL', cycle: 'LUTEAL PHASE', bone: '-1.2 T' },
+    vitalColors: { hr: 'danger', bp: 'danger', trop: 'normal', cycle: null, bone: 'normal' },
+    wrongDiag: '"Unusual Patient Response"',
+    wrongBody: 'Dispenser applied male pharmacokinetic model. Zawadi received 40% more sedative than her biology could safely process. Near-fatal outcome.',
+    rightDiag: 'Dosage Recalculated',
+    rightBody: 'Female-specific metabolic model reduced dosage by 35%. Cycle-phase adjustment applied. Zawadi recovered fully with no complications.',
+    fact: 'The FDA recalled 8 drugs between 1997–2000 — <strong>80% had worse side effects in women</strong>. Many medical dispensing devices still use male metabolic models as the default.'
+  }
+];
+
+let currentCase = 0;
+let calibrationCount = 0;
+let sliderValues = { troponin: 5, symptoms: 2, bone: 3 };
+let toggleValues = { cycle: false };
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function startSim() {
+  currentCase = 0;
+  loadCase(0);
+  showScreen('case-intro');
+}
+
+function goHome() {
+  showScreen('intro');
+}
+
+function resetAll() {
+  currentCase = 0;
+  calibrationCount = 0;
+  loadCase(0);
+  showScreen('intro');
+}
+
+// ══════════════════════════════════════════
+// CASE LOADING
+// ══════════════════════════════════════════
+
+function loadCase(idx) {
+  const c = cases[idx];
+  calibrationCount = 0;
+
+  // Patient sidebar
+  document.getElementById('patient-avatar').textContent = c.patient.avatar;
+  document.getElementById('patient-name').textContent = c.patient.name;
+  document.getElementById('patient-meta').textContent = c.patient.meta;
+  document.getElementById('case-step-label').textContent = `CASE 0${idx+1} OF 0${cases.length}`;
+
+  // Vitals
+  document.getElementById('v-hr').textContent = c.vitals.hr;
+  document.getElementById('v-bp').textContent = c.vitals.bp;
+  document.getElementById('v-trop').textContent = c.vitals.trop;
+  document.getElementById('v-cycle').textContent = c.vitals.cycle;
+  document.getElementById('v-bone').textContent = c.vitals.bone;
+
+  const colorMap = { normal: 'var(--success)', warning: 'var(--warning)', danger: 'var(--danger)' };
+  ['hr','bp','trop','bone'].forEach(k => {
+    const el = document.getElementById('v-' + k);
+    el.style.color = colorMap[c.vitalColors[k]] || 'var(--text)';
+  });
+  document.getElementById('v-cycle').style.color = 'var(--muted)';
+
+  // Case content
+  document.getElementById('case-title').textContent = c.title;
+  document.getElementById('case-desc').textContent = c.desc;
+  document.getElementById('alert-text').innerHTML = c.alert;
+
+  // Dots
+  const dots = document.querySelectorAll('.dot');
+  dots.forEach((d, i) => {
+    d.className = 'dot';
+    if (i < idx) d.classList.add('done');
+    if (i === idx) d.classList.add('active');
+  });
+
+  // Reset controls
+  resetControls();
+  updateRunBtn();
+}
+
+function resetControls() {
+  document.getElementById('sl-troponin').value = 5;
+  document.getElementById('sl-symptoms').value = 2;
+  document.getElementById('sl-bone').value = 3;
+  document.getElementById('val-troponin').textContent = '0.05 ng/mL';
+  document.getElementById('val-symptoms').textContent = '20%';
+  document.getElementById('val-bone').textContent = '-2.5 T';
+  document.getElementById('badge-troponin').textContent = '♂ MALE DEFAULT';
+  document.getElementById('badge-troponin').className = 'cal-badge male';
+  document.getElementById('badge-symptoms').textContent = '♂ MALE DEFAULT';
+  document.getElementById('badge-symptoms').className = 'cal-badge male';
+  document.getElementById('badge-bone').textContent = '♂ MALE DEFAULT';
+  document.getElementById('badge-bone').className = 'cal-badge male';
+  document.getElementById('badge-cycle').textContent = '♂ NOT TRACKED';
+  document.getElementById('badge-cycle').className = 'cal-badge male';
+  document.getElementById('tog-cycle').checked = false;
+  document.getElementById('cycle-phase-row').style.display = 'none';
+  document.getElementById('label-cycle').textContent = 'Enable menstrual cycle phase input';
+  ['card-troponin','card-symptoms','card-cycle','card-bone'].forEach(id => {
+    document.getElementById(id).classList.remove('calibrated');
+  });
+  calibrationCount = 0;
+}
+
+// ══════════════════════════════════════════
+// SLIDER / TOGGLE INTERACTIONS
+// ══════════════════════════════════════════
+
+const troponinVals = ['0.10','0.09','0.08','0.07','0.06','0.05','0.04','0.03','0.02','0.01'];
+const symptomVals = ['10%','20%','30%','40%','50%','60%','70%','80%','90%','100%'];
+const boneVals = ['-3.0','-2.8','-2.6','-2.5','-2.4','-2.2','-2.0','-1.8','-1.6','-1.4'];
+const cyclePhases = ['', 'Menstrual', 'Follicular', 'Ovulatory', 'Luteal'];
+
+function updateSlider(key, val) {
+  const v = parseInt(val);
+  const isFemale = v >= 6;
+  const card = document.getElementById('card-' + key);
+  const badge = document.getElementById('badge-' + key);
+
+  if (key === 'troponin') {
+    document.getElementById('val-troponin').textContent = troponinVals[v-1] + ' ng/mL';
+  } else if (key === 'symptoms') {
+    document.getElementById('val-symptoms').textContent = symptomVals[v-1];
+  } else if (key === 'bone') {
+    document.getElementById('val-bone').textContent = boneVals[v-1] + ' T';
+  }
+
+  const wasFemale = card.classList.contains('calibrated');
+
+  if (isFemale && !wasFemale) {
+    card.classList.add('calibrated');
+    badge.textContent = '♀ FEMALE CALIBRATED';
+    badge.className = 'cal-badge female';
+    calibrationCount++;
+  } else if (!isFemale && wasFemale) {
+    card.classList.remove('calibrated');
+    badge.textContent = '♂ MALE DEFAULT';
+    badge.className = 'cal-badge male';
+    calibrationCount--;
+  }
+
+  updateRunBtn();
+}
+
+function updateToggle(key, checked) {
+  const card = document.getElementById('card-' + key);
+  const badge = document.getElementById('badge-' + key);
+  const label = document.getElementById('label-' + key);
+  const phaseRow = document.getElementById('cycle-phase-row');
+
+  if (checked) {
+    card.classList.add('calibrated');
+    badge.textContent = '♀ TRACKING ENABLED';
+    badge.className = 'cal-badge female';
+    label.textContent = 'Cycle phase tracking active';
+    phaseRow.style.display = 'block';
+    calibrationCount++;
+  } else {
+    card.classList.remove('calibrated');
+    badge.textContent = '♂ NOT TRACKED';
+    badge.className = 'cal-badge male';
+    label.textContent = 'Enable menstrual cycle phase input';
+    phaseRow.style.display = 'none';
+    calibrationCount--;
+  }
+  updateRunBtn();
+  updateCycleVital(checked);
+}
+
+function updateCyclePhase(val) {
+  const phases = ['', 'Menstrual', 'Follicular', 'Ovulatory', 'Luteal'];
+  document.getElementById('val-cycle').textContent = phases[val] || 'Follicular';
+  document.getElementById('v-cycle').textContent = (phases[val] || 'Follicular').toUpperCase();
+  document.getElementById('v-cycle').style.color = 'var(--mint)';
+}
+
+function updateCycleVital(enabled) {
+  const el = document.getElementById('v-cycle');
+  if (!enabled) {
+    el.textContent = 'NOT TRACKED';
+    el.style.color = 'var(--muted)';
+  } else {
+    el.textContent = 'TRACKING';
+    el.style.color = 'var(--mint)';
+  }
+}
+
+function updateRunBtn() {
+  const btn = document.getElementById('run-btn');
+  const hint = document.getElementById('calibration-hint');
+  if (calibrationCount >= 2) {
+    btn.style.opacity = '1';
+    btn.style.pointerEvents = 'auto';
+    hint.textContent = `${calibrationCount} parameters recalibrated ✓`;
+    hint.style.color = 'var(--success)';
+  } else {
+    btn.style.opacity = '0.5';
+    btn.style.pointerEvents = 'none';
+    hint.textContent = `Adjust at least ${2 - calibrationCount} more parameter${calibrationCount === 1 ? '' : 's'} to enable`;
+    hint.style.color = 'var(--muted)';
+  }
+}
+
+// ══════════════════════════════════════════
+// DIAGNOSIS
+// ══════════════════════════════════════════
+
+function runDiagnosis() {
+  const c = cases[currentCase];
+  const score = Math.min(95, 60 + calibrationCount * 10 + Math.floor(Math.random() * 8));
+
+  document.getElementById('result-tag').textContent = `CASE 0${currentCase+1} · DIAGNOSIS UPDATED`;
+  document.getElementById('result-title').textContent = 'Recalibration Complete';
+  document.getElementById('wrong-diag').textContent = c.wrongDiag;
+  document.getElementById('wrong-body').textContent = c.wrongBody;
+  document.getElementById('right-diag').textContent = c.rightDiag;
+  document.getElementById('right-body').textContent = c.rightBody;
+  document.getElementById('fact-ticker').innerHTML = `<strong>Real-world fact:</strong> ${c.fact}`;
+
+  const nextBtn = document.getElementById('next-btn');
+  if (currentCase >= cases.length - 1) {
+    nextBtn.textContent = 'See Impact →';
+  } else {
+    nextBtn.textContent = `Next Patient →`;
+  }
+
+  showScreen('result-screen');
+  animateScore(score);
+}
+
+function animateScore(target) {
+  let current = 0;
+  const el = document.getElementById('score-num');
+  const ring = document.getElementById('score-ring');
+  const interval = setInterval(() => {
+    current += 3;
+    if (current >= target) {
+      current = target;
+      clearInterval(interval);
+    }
+    el.textContent = current + '%';
+  }, 20);
+
+  ring.style.borderColor = target >= 80 ? 'var(--success)' : target >= 60 ? 'var(--warning)' : 'var(--danger)';
+  el.style.color = target >= 80 ? 'var(--success)' : target >= 60 ? 'var(--warning)' : 'var(--danger)';
+  ring.style.boxShadow = `0 0 40px ${target >= 80 ? 'rgba(68,221,136,0.25)' : 'rgba(255,170,68,0.25)'}`;
+}
+
+function nextCase() {
+  currentCase++;
+  if (currentCase >= cases.length) {
+    showScreen('final-screen');
+  } else {
+    loadCase(currentCase);
+    showScreen('case-intro');
+  }
+}
+</script>
+</body>
+</html>
