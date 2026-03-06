@@ -46,12 +46,11 @@
   }
 
   .screen { display: none; position: relative; z-index: 1; }
-  .screen.active { display: block; }
+  .screen.active { display: flex; }
 
   /* ── INTRO SCREEN ── */
   #intro {
     min-height: 100vh;
-    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -149,7 +148,6 @@
   /* ── CASE STUDY SCREEN ── */
   #case-intro {
     min-height: 100vh;
-    display: flex;
     align-items: stretch;
   }
 
@@ -409,7 +407,6 @@
   #result-screen {
     min-height: 100vh;
     padding: 60px 40px;
-    display: flex;
     flex-direction: column;
     align-items: center;
   }
@@ -587,7 +584,6 @@
   /* Final screen */
   #final-screen {
     min-height: 100vh;
-    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
